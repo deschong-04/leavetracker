@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Planner & Salary Tracker</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --color-al: #3b82f6;
+            --color-oil: #10b981;
+            --color-bd: #f59e0b;
+            --color-sl: #6366f1;
+            --color-upl: #ef4444;
+        }
+
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { margin-bottom: 2rem; text-align: center; }
+        header h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.5rem; }
+        
+        .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: end; }
+        .input-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .input-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        
+        input, select { padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; transition: border 0.2s; }
+        input:focus { border-color: var(--primary); }
+
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; grid-column: span 2; }
+        
+        .weight-flex { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .weight-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+        /* Deduction Dashboard */
+        .summary-dashboard { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 1.5rem; 
+            background: #1e293b; 
+            color: white; 
+            padding: 1.5rem 2rem; 
+            border-radius: var(--radius); 
+            margin-bottom: 2rem; 
+        }
+        .stat-item { display: flex; flex-direction: column; }
+        .stat-label { font-size: 0.8rem; opacity: 0.7; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: #fca5a5; }
+        .salary-input-box { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); color: white; width: 120px; font-size: 1rem; }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .weekday-header { background: #f8fafc; padding: 1rem; font-size: 0.75rem; font-weight: 700; text-align: center; color: var(--text-muted); text-transform: uppercase; }
+        .day-cell { background: white; min-height: 125px; padding: 0.75rem; display: flex; flex-direction: column; }
+        .date-number { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+
+        .badge { width: 100%; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-align: center; padding: 4px 0; margin-top: 4px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; }
+        .badge-full { height: 60px; }
+        .badge-half { height: 30px; }
+
+        .AL { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--color-al); }
+        .OIL { background: #d1fae5; color: #065f46; border-left: 4px solid var(--color-oil); }
+        .BD { background: #fef3c7; color: #92400e; border-left: 4px solid var(--color-bd); }
+        .SL { background: #e0e7ff; color: #3730a3; border-left: 4px solid var(--color-sl); }
+        .UPL { background: #fee2e2; color: #991b1b; border-left: 4px solid var(--color-upl); }
+        .PH-badge { background: #fef3c7; color: #92400e; font-style: italic; border: 1px dashed #f59e0b; height: 60px; display: flex; align-items: center; justify-content: center; }
+        .empty { background: #f8fafc; }
+
+        @media (max-width: 600px) { .summary-dashboard { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Leave Planner Pro</h1>
+        <p>Dynamic Tracker • Salary Deduction (Divisor 260)</p>
+    </header>
+
+    <div class="card">
+        <div class="controls-grid">
+            <div class="input-group"><label>Start Date</label><input type="date" id="courseStart" value="2026-07-06"></div>
+            <div class="input-group"><label>End Date</label><input type="date" id="courseEnd" value="2026-09-30"></div>
+            <div class="input-group"><label>Annual</label><input type="number" id="al" value="21"></div>
+            <div class="input-group"><label>OIL</label><input type="number" id="oil" value="1"></div>
+            <div class="input-group"><label>Birthday</label><input type="number" id="bd" value="1"></div>
+            <div class="input-group"><label>Study</label><input type="number" id="sl" value="5"></div>
+            <button class="btn-primary" onclick="renderCalendar()">Update & Calculate</button>
+        </div>
+
+        <div class="weight-flex">
+            <div class="weight-box"><label style="font-size: 10px; font-weight: bold;">MON</label><select id="w1"><option value="1">1.0</option><option value="0.5">0.5</option><option value="0">Off</option></select></div>
+            <div class="weight-box"><label style="font-size: 10px; font-weight: bold;">TUE</label><select id="w2"><option value="1">1.0</option><option value="0.5">0.5</option><option value="0">Off</option></select></div>
+            <div class="weight-box"><label style="font-size: 10px; font-weight: bold;">WED</label><select id="w3"><option value="1">1.0</option><option value="0.5">0.5</option><option value="0">Off</option></select></div>
+            <div class="weight-box"><label style="font-size: 10px; font-weight: bold;">THU</label><select id="w4"><option value="1">1.0</option><option value="0.5">0.5</option><option value="0">Off</option></select></div>
+            <div class="weight-box"><label style="font-size: 10px; font-weight: bold;">FRI</label><select id="w5"><option value="0.5">0.5</option><option value="1">1.0</option><option value="0">Off</option></select></div>
+        </div>
+    </div>
+
+    <div class="summary-dashboard">
+        <div class="stat-item">
+            <span class="stat-label">Monthly Base Salary ($)</span>
+            <input type="number" id="baseSalary" class="salary-input-box" value="4000" oninput="calculateDeduction()">
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">UPL Days / Total Deduction</span>
+            <div>
+                <span id="upl-display" class="stat-value">0</span> 
+                <span style="font-size: 1rem; color: #94a3b8; margin: 0 10px;">=</span>
+                <span id="deduction-display" class="stat-value" style="color: #60a5fa;">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="calendar-area"></div>
+</div>
+
+<script>
+let currentUPLCount = 0;
+
+function calculateDeduction() {
+    const salary = parseFloat(document.getElementById('baseSalary').value) || 0;
+    // Formula: (Monthly * 12) / 260 = Daily Rate
+    const dailyRate = (salary * 12) / 260;
+    const totalDeduction = dailyRate * currentUPLCount;
+    
+    document.getElementById('deduction-display').innerText = `$${totalDeduction.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+}
+
+function renderCalendar() {
+    const startVal = document.getElementById('courseStart').value;
+    const endVal = document.getElementById('courseEnd').value;
+    if(!startVal || !endVal) return;
+
+    const startDate = new Date(startVal + "T00:00:00");
+    const endDate = new Date(endVal + "T00:00:00");
+    
+    const weights = {
+        1: parseFloat(document.getElementById('w1').value),
+        2: parseFloat(document.getElementById('w2').value),
+        3: parseFloat(document.getElementById('w3').value),
+        4: parseFloat(document.getElementById('w4').value),
+        5: parseFloat(document.getElementById('w5').value),
+        6: 0, 0: 0
+    };
+
+    let bal = {
+        AL: parseFloat(document.getElementById('al').value) || 0,
+        OIL: parseFloat(document.getElementById('oil').value) || 0,
+        BD: parseFloat(document.getElementById('bd').value) || 0,
+        SL: parseFloat(document.getElementById('sl').value) || 0
+    };
+
+    currentUPLCount = 0;
+    const ph = ["2026-08-09", "2026-08-10"]; 
+    
+    let html = "";
+    let curMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const lastMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+    while (curMonth <= lastMonth) {
+        const m = curMonth.getMonth();
+        const y = curMonth.getFullYear();
+        html += `<div style="font-weight:700; margin: 25px 0 10px 5px; font-size:1.1rem;">${curMonth.toLocaleString('default', { month: 'long' })} ${y}</div>`;
+        html += `<div class="calendar-grid">`;
+        ["Mon", "Tue", "Wed", "Thu", "Fri"].forEach(h => html += `<div class="weekday-header">${h}</div>`);
+
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const firstDay = new Date(y, m, 1).getDay();
+        let spaces = (firstDay === 0 || firstDay === 6) ? 0 : firstDay - 1;
+
+        for(let s=0; s<spaces; s++) html += `<div class="day-cell empty"></div>`;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const date = new Date(y, m, d, 0, 0, 0);
+            const dow = date.getDay();
+            if (dow === 0 || dow === 6) continue;
+
+            const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const isPH = ph.includes(dStr);
+            const weight = (date >= startDate && date <= endDate) ? weights[dow] : 0;
+
+            html += `<div class="day-cell"><span class="date-number">${d}</span>`;
+
+            if (weight > 0 && !isPH) {
+                let type = "UPL";
+                let displayWeight = weight;
+
+                if (bal.AL >= weight) { type="AL"; bal.AL -= weight; }
+                else if (bal.OIL >= weight) { type="OIL"; bal.OIL -= weight; }
+                else if (weight === 1.0 && bal.BD >= 1.0) { type="BD"; bal.BD -= 1.0; }
+                else if (bal.SL >= weight) { type="SL"; bal.SL -= weight; }
+                else { 
+                    type = "UPL";
+                    currentUPLCount += 1; // Round up to full day UPL
+                    displayWeight = 1.0; 
+                }
+                
+                const sizeClass = displayWeight === 1 ? 'badge-full' : 'badge-half';
+                html += `<div class="badge ${type} ${sizeClass}">${type}</div>`;
+            } else if (isPH) {
+                html += `<div class="badge PH-badge">PH</div>`;
+            }
+            html += `</div>`;
+        }
+        html += `</div>`;
+        curMonth.setMonth(curMonth.getMonth() + 1);
+    }
+
+    document.getElementById('calendar-area').innerHTML = html;
+    document.getElementById('upl-display').innerText = currentUPLCount;
+    calculateDeduction();
+}
+window.onload = renderCalendar;
+</script>
+</body>
+</html>
