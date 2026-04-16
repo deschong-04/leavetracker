@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Planner & Salary Tracker</title>
+    <title>Leave Planner Pro - BD Priority</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -32,7 +32,6 @@
         .input-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
         
         input, select { padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; }
-
         .btn-primary { background: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; grid-column: span 2; }
         
         .weight-flex { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
@@ -78,7 +77,7 @@
 <div class="container">
     <header>
         <h1>Leave Planner Pro</h1>
-        <p>Dynamic Tracker • Salary & BD Rules Active</p>
+        <p>Dynamic Tracker • BD Priority Rule Updated</p>
     </header>
 
     <div class="card">
@@ -92,7 +91,7 @@
                 <select id="bdMonth">
                     <option value="0">January</option><option value="1">February</option><option value="2">March</option>
                     <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-                    <option value="6">July</option><option value="7" selected>August</option><option value="8">September</option>
+                    <option value="6" selected>July</option><option value="7">August</option><option value="8">September</option>
                     <option value="9">October</option><option value="10">November</option><option value="11">December</option>
                 </select>
             </div>
@@ -158,7 +157,7 @@ function renderCalendar() {
     let bal = {
         AL: parseFloat(document.getElementById('al').value) || 0,
         OIL: parseFloat(document.getElementById('oil').value) || 0,
-        BD: 1.0, // Birthday leave is 1 day
+        BD: 1.0, 
         SL: parseFloat(document.getElementById('sl').value) || 0
     };
 
@@ -197,13 +196,13 @@ function renderCalendar() {
                 let type = "UPL";
                 let displayWeight = weight;
 
-                if (bal.AL >= weight) { type="AL"; bal.AL -= weight; }
-                else if (bal.OIL >= weight) { type="OIL"; bal.OIL -= weight; }
-                // BD Logic: Only if Month matches AND weight is exactly 1.0 (Full Day)
-                else if (m === chosenBDMonth && weight === 1.0 && bal.BD >= 1.0) { 
+                // UPDATED PRIORITY: Check BD first if in the correct month
+                if (m === chosenBDMonth && weight === 1.0 && bal.BD >= 1.0) { 
                     type="BD"; 
                     bal.BD -= 1.0; 
                 }
+                else if (bal.AL >= weight) { type="AL"; bal.AL -= weight; }
+                else if (bal.OIL >= weight) { type="OIL"; bal.OIL -= weight; }
                 else if (bal.SL >= weight) { type="SL"; bal.SL -= weight; }
                 else { 
                     type = "UPL";
