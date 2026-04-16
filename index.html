@@ -31,15 +31,13 @@
         .input-group { display: flex; flex-direction: column; gap: 0.4rem; }
         .input-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
         
-        input, select { padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; transition: border 0.2s; }
-        input:focus { border-color: var(--primary); }
+        input, select { padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; }
 
         .btn-primary { background: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; grid-column: span 2; }
         
         .weight-flex { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
         .weight-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 
-        /* Deduction Dashboard */
         .summary-dashboard { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -79,8 +77,8 @@
 
 <div class="container">
     <header>
-        <h1>Leave Planner</h1>
-        <p>Dynamic Tracker • Salary Deduction (Divisor 260)</p>
+        <h1>Leave Planner Pro</h1>
+        <p>Dynamic Tracker • Salary & BD Rules Active</p>
     </header>
 
     <div class="card">
@@ -89,8 +87,16 @@
             <div class="input-group"><label>End Date</label><input type="date" id="courseEnd" value="2026-09-30"></div>
             <div class="input-group"><label>Annual</label><input type="number" id="al" value="21"></div>
             <div class="input-group"><label>OIL</label><input type="number" id="oil" value="1"></div>
-            <div class="input-group"><label>Birthday</label><input type="number" id="bd" value="1"></div>
-            <div class="input-group"><label>Study/Wellness</label><input type="number" id="sl" value="5"></div>
+            <div class="input-group">
+                <label>BD Month</label>
+                <select id="bdMonth">
+                    <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+                    <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+                    <option value="6">July</option><option value="7" selected>August</option><option value="8">September</option>
+                    <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Study</label><input type="number" id="sl" value="5"></div>
             <button class="btn-primary" onclick="renderCalendar()">Update & Calculate</button>
         </div>
 
@@ -126,10 +132,8 @@ let currentUPLCount = 0;
 
 function calculateDeduction() {
     const salary = parseFloat(document.getElementById('baseSalary').value) || 0;
-    // Formula: (Monthly * 12) / 260 = Daily Rate
     const dailyRate = (salary * 12) / 260;
     const totalDeduction = dailyRate * currentUPLCount;
-    
     document.getElementById('deduction-display').innerText = `$${totalDeduction.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
 
@@ -140,6 +144,7 @@ function renderCalendar() {
 
     const startDate = new Date(startVal + "T00:00:00");
     const endDate = new Date(endVal + "T00:00:00");
+    const chosenBDMonth = parseInt(document.getElementById('bdMonth').value);
     
     const weights = {
         1: parseFloat(document.getElementById('w1').value),
@@ -153,7 +158,7 @@ function renderCalendar() {
     let bal = {
         AL: parseFloat(document.getElementById('al').value) || 0,
         OIL: parseFloat(document.getElementById('oil').value) || 0,
-        BD: parseFloat(document.getElementById('bd').value) || 0,
+        BD: 1.0, // Birthday leave is 1 day
         SL: parseFloat(document.getElementById('sl').value) || 0
     };
 
@@ -194,11 +199,15 @@ function renderCalendar() {
 
                 if (bal.AL >= weight) { type="AL"; bal.AL -= weight; }
                 else if (bal.OIL >= weight) { type="OIL"; bal.OIL -= weight; }
-                else if (weight === 1.0 && bal.BD >= 1.0) { type="BD"; bal.BD -= 1.0; }
+                // BD Logic: Only if Month matches AND weight is exactly 1.0 (Full Day)
+                else if (m === chosenBDMonth && weight === 1.0 && bal.BD >= 1.0) { 
+                    type="BD"; 
+                    bal.BD -= 1.0; 
+                }
                 else if (bal.SL >= weight) { type="SL"; bal.SL -= weight; }
                 else { 
                     type = "UPL";
-                    currentUPLCount += 1; // Round up to full day UPL
+                    currentUPLCount += 1; 
                     displayWeight = 1.0; 
                 }
                 
